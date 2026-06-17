@@ -4,61 +4,208 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QRコード面接練習回数管理システム</title>
-  <script src="https://script.google.com/macros/s/AKfycbygGcjEbmmHe3KaoRXFL0GB_68YLnXK-jgcIHn4Ezy5Dhnb0By6cyjqEKo_60ExOdik/exec"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
-    body { font-family: sans-serif; text-align: center; margin-top: 20px; background-color: #f8f9fa; color: #333; }
-    h2 { color: #004085; }
-    #canvas { width: 100%; max-width: 400px; border: 3px solid #007bff; border-radius: 8px; background: #eee; margin-top: 10px; }
-    #result { font-size: 1.3em; font-weight: bold; color: #0056b3; margin-top: 15px; padding: 10px; border-radius: 5px; min-height: 40px; }
-    .select-box { margin-bottom: 15px; font-size: 1.1em; padding: 5px; }
-    select { font-size: 1.1em; padding: 6px 12px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; }
-    .success-alert { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .error-alert { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    /* 全体ベース */
+    body { 
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; 
+      background-color: #f0f2f5; 
+      color: #333; 
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
     
-    /* ボタン用のスタイルを追加 */
+    h2 { 
+      color: #1a365d; 
+      margin-bottom: 24px;
+      font-size: 1.6em;
+    }
+
+    /* 2カラムレイアウト用のコンテナ */
+    .main-container {
+      display: flex;
+      gap: 24px;
+      max-width: 1000px;
+      width: 100%;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* 左右共通のカードスタイル */
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+      flex: 1;
+      min-width: 320px;
+      box-sizing: border-box;
+    }
+
+    .card-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #2d3748;
+      margin-top: 0;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #edf2f7;
+      text-align: left;
+    }
+
+    /* 左側：手続きエリアの設定 */
+    .step-box {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    .step-label {
+      display: block;
+      font-weight: bold;
+      font-size: 1em;
+      color: #4a5568;
+      margin-bottom: 8px;
+    }
+
+    select { 
+      width: 100%;
+      font-size: 1.1em; 
+      padding: 10px 12px; 
+      border-radius: 6px; 
+      border: 1px solid #cbd5e0; 
+      background-color: #fff;
+      font-weight: bold; 
+      box-sizing: border-box;
+      color: #2d3748;
+    }
+
+    /* ボタン */
     .scan-btn { 
-      font-size: 1.2em; 
-      padding: 10px 20px; 
-      background-color: #007bff; 
+      width: 100%;
+      font-size: 1.1em; 
+      padding: 12px 20px; 
+      background-color: #3182ce; 
       color: white; 
       border: none; 
-      border-radius: 5px; 
+      border-radius: 6px; 
       cursor: pointer; 
       font-weight: bold;
       margin-top: 10px;
+      transition: background-color 0.2s;
     }
-    .scan-btn:hover { background-color: #0056b3; }
-    .scan-btn:disabled { background-color: #6c757d; cursor: not-allowed; }
+    .scan-btn:hover { background-color: #2b6cb0; }
+    .scan-btn:disabled { background-color: #a0aec0; cursor: not-allowed; }
+
+    /* カメラ映像（キャンバス） */
+    #canvas { 
+      width: 100%; 
+      border: 2px solid #edf2f7; 
+      border-radius: 8px; 
+      background: #f7fafc; 
+      margin-top: 15px; 
+    }
+
+    #loading {
+      text-align: center;
+      padding: 20px;
+      color: #718096;
+      font-weight: bold;
+    }
+
+    /* 右側：結果エリアの設定 */
+    .result-item {
+      display: flex;
+      align-items: center;
+      background-color: #f7fafc;
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      text-align: left;
+    }
+
+    .result-label {
+      width: 100px;
+      font-weight: bold;
+      color: #718096;
+      font-size: 0.95em;
+    }
+
+    .result-value {
+      font-weight: bold;
+      color: #2d3748;
+      font-size: 1.1em;
+      flex: 1;
+    }
+
+    /* ステータス・アラート表示 */
+    #result { 
+      font-size: 1.1em; 
+      font-weight: bold; 
+      color: #4a5568; 
+      margin-top: 15px; 
+      padding: 15px; 
+      border-radius: 6px; 
+      min-height: 40px; 
+      background-color: #ebf8ff;
+      border: 1px solid #bee3f8;
+      line-height: 1.5;
+    }
+    #result.success-alert { background-color: #c6f6d5; color: #22543d; border-color: #9ae6b4; }
+    #result.error-alert { background-color: #fed7d7; color: #742a2a; border-color: #feb2b2; }
+
+    /* スマホ等の縦長画面では1カラムに自動折りたたみ */
+    @media (max-width: 768px) {
+      .main-container {
+        flex-direction: column;
+      }
+      .card {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
 
   <h2>面接練習記録用 QRスキャナー</h2>
   
-  <div class="select-box">
-    <label for="teacher"><strong>担当先生: </strong></label>
-    <select id="teacher">
-      <option value="未選択">読み込み中...</option>
-    </select>
+  <div class="main-container">
+    
+    <div class="card">
+      <div class="card-title">① 操作・スキャン</div>
+      
+      <div class="step-box">
+        <label for="teacher" class="step-label">担当の先生を選択してください</label>
+        <select id="teacher">
+          <option value="未選択">読み込み中...</option>
+        </select>
+      </div>
+      
+      <button id="startBtn" class="scan-btn">QRコードを読み取る</button>
+      
+      <div id="loading" hidden>カメラを起動中...</div>
+      <canvas id="canvas" hidden></canvas>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">② 読み取り結果</div>
+      
+      <div id="result">担当先生を選択し、「QRコードを読み取る」ボタンを押してください</div>
+    </div>
+    
   </div>
-  
-  <button id="startBtn" class="scan-btn">QRコードを読み取る</button>
-  
-  <br>
-  <canvas id="canvas" hidden></canvas>
-  <div id="loading" hidden>カメラを起動中...</div>
-  <div id="result">担当先生を選択し、「QRコードを読み取る」ボタンを押してください</div>
 
   <script>
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbygGcjEbmmHe3KaoRXFL0GB_68YLnXK-jgcIHn4Ezy5Dhnb0By6cyjqEKo_60ExOdik/exec";
     
-    let localStream = null; // カメラのストリームを保持する変数
+    let localStream = null; 
     let video = document.createElement("video");
 
     window.addEventListener('DOMContentLoaded', () => {
-      loadTeachers(); // 最初に先生のリストをスプレッドシートから持ってくる
+      loadTeachers(); 
       
-      // ボタンのクリックイベントを設定
       document.getElementById("startBtn").addEventListener("click", () => {
         const teacherName = document.getElementById("teacher").value;
         if (teacherName === "未選択") {
@@ -69,7 +216,6 @@
       });
     });
 
-    // 先生マスターから名前を引っ張ってくる関数
     function loadTeachers() {
       const teacherSelect = document.getElementById("teacher");
       
@@ -102,14 +248,13 @@
       const startBtn = document.getElementById("startBtn");
       let isProcessing = false; 
 
-      // 起動中表示
       loadingMessage.hidden = false;
-      startBtn.disabled = true; // 連打防止でボタンを無効化
+      startBtn.disabled = true; 
       outputData.innerText = "カメラを起動しています...";
       outputData.className = "";
 
       navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
-        localStream = stream; // ストリームを保存
+        localStream = stream; 
         video.srcObject = stream;
         video.setAttribute("playsinline", true);
         video.play();
@@ -137,8 +282,6 @@
             isProcessing = true; 
             const teacherName = document.getElementById("teacher").value;
 
-            // ★ 確認画面の表示
-            // 生徒ID（code.data）と選択された先生を表示して確認
             const confirmRecord = confirm(
               "QRコードを検出しました。\n\n" +
               "【担当先生】: " + teacherName + "\n" +
@@ -147,7 +290,6 @@
             );
 
             if (!confirmRecord) {
-              // キャンセルされた場合は、少し待ってからスキャンを再開
               outputData.innerText = "キャンセルされました。再度QRコードをかざしてください。";
               setTimeout(() => {
                 isProcessing = false;
@@ -156,12 +298,9 @@
               return;
             }
 
-            // OKが押されたら送信処理へ
             outputData.innerText = "記録中...";
             outputData.className = "";
-            outputData.style.color = "orange";
 
-            // GASへデータ送信
             fetch(GAS_WEB_APP_URL, {
               method: "POST",
               body: JSON.stringify({ teacherName: teacherName, studentId: code.data }),
@@ -170,14 +309,12 @@
             .then(res => res.json())
             .then(response => {
               if (response.status === "Success") {
-                outputData.innerHTML = "記録完了！<br><span style='font-size:1.4em; color:#155724;'>" + response.name + " さん</span>";
+                outputData.innerHTML = "処理結果: 記録完了！<br><span style='font-size:1.3em; color:#22543d; display:block; margin-top:8px;'>" + response.name + " さん</span>";
                 outputData.className = "success-alert";
               } else {
                 outputData.innerText = "エラー: " + response.message;
                 outputData.className = "error-alert";
               }
-              
-              // 完了したらカメラを止めて初期状態に戻す
               stopCamera();
             })
             .catch(err => {
@@ -194,17 +331,15 @@
         }
       }
 
-      // カメラを停止してボタンを再活性化する内部関数
       function stopCamera() {
         if (localStream) {
-          localStream.getTracks().forEach(track => track.stop()); // カメラのレンズをオフにする
+          localStream.getTracks().forEach(track => track.stop()); 
         }
         canvasElement.hidden = true;
-        startBtn.disabled = false; // ボタンを再度押せるようにする
+        startBtn.disabled = false; 
         setTimeout(() => {
           if(outputData.className !== "success-alert" && outputData.className !== "error-alert") {
             outputData.innerText = "担当先生を選択し、「QRコードを読み取る」ボタンを押してください";
-            outputData.style.color = "#0056b3";
           }
         }, 4000);
       }
