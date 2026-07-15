@@ -98,6 +98,9 @@
     }
     .scan-btn:hover { background-color: #2b6cb0; }
     .scan-btn:disabled { background-color: #a0aec0; cursor: not-allowed; }
+    /* カメラ起動中の「キャンセル」状態のスタイル（色を警告赤に変更） */
+    .scan-btn.active-cancel { background-color: #e53e3e; }
+    .scan-btn.active-cancel:hover { background-color: #c53030; }
 
     /* カメラ映像（キャンバス） */
     #canvas { 
@@ -202,17 +205,28 @@
     
     let localStream = null; 
     let video = document.createElement("video");
+    let isCameraRunning = false; // カメラが起動中かどうかのフラグ
+    let animationFrameId = null; // ループ処理を停止するためのID保持用
 
     window.addEventListener('DOMContentLoaded', () => {
       loadTeachers(); 
       
       document.getElementById("startBtn").addEventListener("click", () => {
-        const teacherName = document.getElementById("teacher").value;
-        if (teacherName === "未選択") {
-          alert("エラー: 先に先生を選択してください！");
-          return;
+        // カメラが起動していなければ起動処理、起動していれば停止（キャンセル）処理を行う
+        if (!isCameraRunning) {
+          const teacherName = document.getElementById("teacher").value;
+          if (teacherName === "未選択") {
+            alert("エラー: 先に先生を選択してください！");
+            return;
+          }
+          startCamera();
+        } else {
+          // キャンセルボタンとして機能させる
+          const outputData = document.getElementById("result");
+          outputData.innerText = "カメラの起動をキャンセルしました。";
+          outputData.className = "";
+          stopCamera();
         }
-        startCamera();
       });
     });
 
@@ -249,7 +263,12 @@
       let isProcessing = false; 
 
       loadingMessage.hidden = false;
-      startBtn.disabled = true; 
+      
+      // ボタンの外見を「カメラを切る（赤色）」に変更
+      startBtn.innerText = "カメラを切る";
+      startBtn.classList.add("active-cancel");
+      isCameraRunning = true;
+
       outputData.innerText = "カメラを起動しています...";
       outputData.className = "";
 
@@ -258,15 +277,17 @@
         video.srcObject = stream;
         video.setAttribute("playsinline", true);
         video.play();
-        requestAnimationFrame(tick);
+        animationFrameId = requestAnimationFrame(tick);
       }).catch(function(err) {
         outputData.innerText = "カメラが起動できません: " + err.message;
         outputData.className = "error-alert";
-        startBtn.disabled = false;
+        resetButtonState(); // エラー時はボタンを元に戻す
         loadingMessage.hidden = true;
       });
 
       function tick() {
+        if (!isCameraRunning) return; // カメラが途中で切られたらループを抜ける
+
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
           if (loadingMessage) loadingMessage.hidden = true;
           canvasElement.hidden = false;
@@ -293,7 +314,9 @@
               outputData.innerText = "キャンセルされました。再度QRコードをかざしてください。";
               setTimeout(() => {
                 isProcessing = false;
-                requestAnimationFrame(tick);
+                if (isCameraRunning) {
+                  animationFrameId = requestAnimationFrame(tick);
+                }
               }, 1500);
               return;
             }
@@ -326,23 +349,44 @@
             return;
           }
         }
-        if (!isProcessing) {
-          requestAnimationFrame(tick);
+        if (!isProcessing && isCameraRunning) {
+          animationFrameId = requestAnimationFrame(tick);
         }
       }
+    }
 
-      function stopCamera() {
-        if (localStream) {
-          localStream.getTracks().forEach(track => track.stop()); 
-        }
-        canvasElement.hidden = true;
-        startBtn.disabled = false; 
-        setTimeout(() => {
-          if(outputData.className !== "success-alert" && outputData.className !== "error-alert") {
-            outputData.innerText = "担当先生を選択し、「QRコードを読み取る」ボタンを押してください";
-          }
-        }, 4000);
+    function stopCamera() {
+      isCameraRunning = false;
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
       }
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop()); 
+        localStream = null;
+      }
+      
+      const canvasElement = document.getElementById("canvas");
+      const loadingMessage = document.getElementById("loading");
+      const outputData = document.getElementById("result");
+
+      canvasElement.hidden = true;
+      loadingMessage.hidden = true;
+      resetButtonState();
+      
+      setTimeout(() => {
+        if(outputData.className !== "success-alert" && outputData.className !== "error-alert") {
+          outputData.innerText = "担当先生を選択し、「QRコードを読み取る」ボタンを押してください";
+        }
+      }, 4000);
+    }
+
+    // ボタンのデザインとテキストを初期状態に戻す共通関数
+    function resetButtonState() {
+      const startBtn = document.getElementById("startBtn");
+      startBtn.innerText = "QRコードを読み取る";
+      startBtn.classList.remove("active-cancel");
+      startBtn.disabled = false;
+      isCameraRunning = false;
     }
   </script>
 </body>
