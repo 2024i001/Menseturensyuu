@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生徒面接回数カウンター【課題研究】</title>
+    <!-- スタイリング用 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 非表示クラス */
+        .tab-content.hidden { display: none; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col font-sans">
+
+    <!-- =================================================== -->
+    <!-- 1. アプリケーション最上部：タイトルエリア -->
+    <!-- =================================================== -->
+    <header class="bg-slate-900 text-white py-4 px-6 shadow-md">
+        <h1 class="text-xl sm:text-2xl font-bold tracking-wide">
+            生徒面接練習回数カウンター
+        </h1>
+    </header>
+
+    <!-- メイン領域 -->
+    <main class="max-w-7xl w-full mx-auto p-4 sm:p-6 flex-1 flex flex-col">
+
+        <!-- =================================================== -->
+        <!-- 2. タイトル直下：タブ切り替えボタン -->
+        <!-- =================================================== -->
+        <div class="flex border-b border-slate-300 mb-6 bg-white rounded-t-lg overflow-hidden shadow-sm">
+            <button id="btn-app1" onclick="switchTab('app1')" 
+                    class="tab-btn flex-1 py-3 px-4 font-bold text-center text-indigo-600 border-b-2 border-indigo-600 bg-white transition-colors">
+                アプリ 1
+            </button>
+            <button id="btn-app2" onclick="switchTab('app2')" 
+                    class="tab-btn flex-1 py-3 px-4 font-bold text-center text-slate-500 hover:text-slate-700 bg-slate-50 transition-colors">
+                アプリ 2
+            </button>
+        </div>
+
+        <!-- =================================================== -->
+        <!-- 3. 各アプリの表示エリア（コピペ領域） -->
+        <!-- =================================================== -->
+
+        <!-- ▼▼▼ [アプリ 1] 表示エリア ▼▼▼ -->
+        <div id="panel-app1" class="tab-content bg-white p-6 rounded-b-lg border border-slate-200 shadow-sm flex-1">
+            
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QRコード面接練習回数管理システム</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <style>
+    /* 全体ベース */
+    body { 
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; 
+      background-color: #ffffff; 
+      color: #333; 
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    h2 { 
+      color: #1a365d; 
+      margin-bottom: 24px;
+      font-size: 1.6em;
+    }
+
+    /* 2カラムレイアウト用のコンテナ */
+    .main-container {
+      display: flex;
+      gap: 24px;
+      max-width: 1000px;
+      width: 100%;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* 左右共通のカードスタイル */
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+      flex: 1;
+      min-width: 320px;
+      box-sizing: border-box;
+    }
+
+    .card-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #111111;
+      margin-top: 0;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #edf2f7;
+      text-align: left;
+    }
+
+    /* 左側：手続きエリアの設定 */
+    .step-box {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    .step-label {
+      display: block;
+      font-weight: bold;
+      font-size: 1em;
+      color: #111111;
+      margin-bottom: 8px;
+    }
+
+    select { 
+      width: 100%;
+      font-size: 1.1em; 
+      padding: 10px 12px; 
+      border-radius: 6px; 
+      border: 1px solid #cbd5e0; 
+      background-color: #fff;
+      font-weight: bold; 
+      box-sizing: border-box;
+      color: #2d3748;
+    }
+
+    /* ボタン */
+    .scan-btn { 
+      width: 100%;
+      font-size: 1.1em; 
+      padding: 12px 20px; 
+      background-color: #3182ce; 
+      color: white; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-weight: bold;
+      margin-top: 10px;
+      transition: background-color 0.2s;
+    }
+    .scan-btn:hover { background-color: #2b6cb0; }
+    .scan-btn:disabled { background-color: #a0aec0; cursor: not-allowed; }
+    /* カメラ起動中の「キャンセル」状態のスタイル（色を警告赤に変更） */
+    .scan-btn.active-cancel { background-color: #e53e3e; }
+    .scan-btn.active-cancel:hover { background-color: #c53030; }
+
+    /* カメラ映像（キャンバス） */
+    #canvas { 
+      width: 100%; 
+      border: 2px solid #edf2f7; 
+      border-radius: 8px; 
+      background: #f7fafc; 
+      margin-top: 15px; 
+    }
+
+    #loading {
+      text-align: center;
+      padding: 20px;
+      color: #718096;
+      font-weight: bold;
+    }
+
+    /* 右側：結果エリアの設定 */
+    .result-item {
+      display: flex;
+      align-items: center;
+      background-color: #f7fafc;
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      text-align: left;
+    }
+
+    .result-label {
+      width: 100px;
+      font-weight: bold;
+      color: #718096;
+      font-size: 0.95em;
+    }
+
+    .result-value {
+      font-weight: bold;
+      color: #2d3748;
+      font-size: 1.1em;
+      flex: 1;
+    }
+
+    /* ステータス・アラート表示 */
+    #result { 
+      font-size: 1.1em; 
+      font-weight: bold; 
+      color: #4a5568; 
+      margin-top: 15px; 
+      padding: 15px; 
+      border-radius: 6px; 
+      min-height: 40px; 
+      background-color: #ebf8ff;
+      border: 1px solid #bee3f8;
+      line-height: 1.5;
+    }
+    #result.success-alert { background-color: #c6f6d5; color: #22543d; border-color: #9ae6b4; }
+    #result.error-alert { background-color: #fed7d7; color: #742a2a; border-color: #feb2b2; }
+
+    /* スマホ等の縦長画面では1カラムに自動折りたたみ */
+    @media (max-width: 768px) {
+      .main-container {
+        flex-direction: column;
+      }
+      .card {
+        width: 100%;
+      }
+    }
+
+    /* 【追加】隠しリンクボタンのスタイル */
+    .secret-trigger {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      width: 12px;
+      height: 12px;
+      background-color: #edf2f7; /* 背景に近い非常に薄いグレー */
+      border-radius: 50%;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: opacity 0.2s, background-color 0.2s;
+      z-index: 9999;
+    }
+    /* ホバーした時だけ少しだけ自己主張する */
+    .secret-trigger:hover {
+      opacity: 0.8;
+      background-color: #cbd5e0;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>面接練習記録用 QRスキャナー</h2>
+  
+  <div class="main-container">
+    
+    <div class="card">
+      <div class="card-title">① 操作・スキャン</div>
+      
+      <div class="step-box">
+        <label for="teacher" class="step-label">担当の先生を選択してください</label>
+        <select id="teacher">
+          <option value="未選択">読み込み中...</option>
+        </select>
+      </div>
+      
+      <button id="startBtn" class="scan-btn">QRコードを読み取る</button>
+      
+      <div id="loading" hidden>カメラを起動中...</div>
+      <canvas id="canvas" hidden></canvas>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">② 読み取り結果</div>
+      
+      <div id="result">担当先生を選択し、「QRコードを読み取る」ボタンを押してください</div>
+    </div>
+    
+  </div>
+
+  <div class="secret-trigger" onclick="window.open('bulk_qr_code_generator.html', '_blank');"></div>
+
+  <script>
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyshubu1o0ZSVU6GqBEdsPeiB_al0psmVNAwybrWZ9ycwtQcDzQc3XERdVI9ToNtD46fQ/exec";
+    
+    let localStream = null; 
+    let video = document.createElement("video");
+    let isCameraRunning = false; // カメラが起動中かどうかのフラグ
+    let animationFrameId = null; // ループ処理を停止するためのID保持用
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadTeachers(); 
+      
+      document.getElementById("startBtn").addEventListener("click", () => {
+        // カメラが起動していなければ起動処理、起動していれば停止（キャンセル）処理を行う
+        if (!isCameraRunning) {
+          const teacherName = document.getElementById("teacher").value;
+          if (teacherName === "未選択") {
+            alert("エラー: 先に先生を選択してください！");
+            return;
+          }
+          startCamera();
+        } else {
+          // キャンセルボタンとして機能させる
+          const outputData = document.getElementById("result");
+          outputData.innerText = "カメラの起動をキャンセルしました。";
+          outputData.className = "";
+          stopCamera();
+        }
+      });
+    });
+
+    function loadTeachers() {
+      const teacherSelect = document.getElementById("teacher");
+      
+      fetch(GAS_WEB_APP_URL)
+        .then(res => res.json())
+        .then(data => {
+          teacherSelect.innerHTML = '<option value="未選択">-- 先生を選択してください --</option>';
+          if (data.teachers && data.teachers.length > 0) {
+            data.teachers.forEach(teacher => {
+              const opt = document.createElement("option");
+              opt.value = teacher;
+              opt.textContent = teacher;
+              teacherSelect.appendChild(opt);
+            });
+          } else {
+            teacherSelect.innerHTML = '<option value="未選択">先生マスターが空っぽです</option>';
+          }
+        })
+        .catch(err => {
+          teacherSelect.innerHTML = '<option value="未選択">先生リストの取得に失敗しました</option>';
+          console.error(err);
+        });
+    }
+
+    function startCamera() {
+      const canvasElement = document.getElementById("canvas");
+      const canvas = canvasElement.getContext("2d", { willReadFrequently: true });
+      const loadingMessage = document.getElementById("loading");
+      const outputData = document.getElementById("result");
+      const startBtn = document.getElementById("startBtn");
+      let isProcessing = false; 
+
+      loadingMessage.hidden = false;
+      
+      // ボタンの外見を「カメラを切る（赤色）」に変更
+      startBtn.innerText = "カメラを切る";
+      startBtn.classList.add("active-cancel");
+      isCameraRunning = true;
+
+      outputData.innerText = "カメラを起動しています...";
+      outputData.className = "";
+
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
+        localStream = stream; 
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true);
+        video.play();
+        animationFrameId = requestAnimationFrame(tick);
+      }).catch(function(err) {
+        outputData.innerText = "カメラが起動できません: " + err.message;
+        outputData.className = "error-alert";
+        resetButtonState(); // エラー時はボタンを元に戻す
+        loadingMessage.hidden = true;
+      });
+
+      function tick() {
+        if (!isCameraRunning) return; // カメラが途中で切られたらループを抜ける
+
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          if (loadingMessage) loadingMessage.hidden = true;
+          canvasElement.hidden = false;
+
+          canvasElement.height = video.videoHeight;
+          canvasElement.width = video.videoWidth;
+          canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+          
+          var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+          var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+          
+          if (code && !isProcessing) {
+            isProcessing = true; 
+            const teacherName = document.getElementById("teacher").value;
+
+            const confirmRecord = confirm(
+              "QRコードを検出しました。\n\n" +
+              "【担当先生】: " + teacherName + "\n" +
+              "【対象生徒ID】: " + code.data + "\n\n" +
+              "この内容で記録を送信しますか？"
+            );
+
+            if (!confirmRecord) {
+              outputData.innerText = "キャンセルされました。再度QRコードをかざしてください。";
+              setTimeout(() => {
+                isProcessing = false;
+                if (isCameraRunning) {
+                  animationFrameId = requestAnimationFrame(tick);
+                }
+              }, 1500);
+              return;
+            }
+
+            outputData.innerText = "記録中...";
+            outputData.className = "";
+
+            fetch(GAS_WEB_APP_URL, {
+              method: "POST",
+              body: JSON.stringify({ teacherName: teacherName, studentId: code.data }),
+              headers: { "Content-Type": "text/plain" }
+            })
+            .then(res => res.json())
+            .then(response => {
+              if (response.status === "Success") {
+                outputData.innerHTML = "処理結果: 記録完了！<br><span style='font-size:1.3em; color:#22543d; display:block; margin-top:8px;'>" + response.name + " さん</span>";
+                outputData.className = "success-alert";
+              } else {
+                outputData.innerText = "エラー: " + response.message;
+                outputData.className = "error-alert";
+              }
+              stopCamera();
+            })
+            .catch(err => {
+              outputData.innerText = "通信エラー発生: " + err.message;
+              outputData.className = "error-alert";
+              stopCamera();
+            });
+              
+            return;
+          }
+        }
+        if (!isProcessing && isCameraRunning) {
+          animationFrameId = requestAnimationFrame(tick);
+        }
+      }
+    }
+
+    function stopCamera() {
+      isCameraRunning = false;
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop()); 
+        localStream = null;
+      }
+      
+      const canvasElement = document.getElementById("canvas");
+      const loadingMessage = document.getElementById("loading");
+      const outputData = document.getElementById("result");
+
+      canvasElement.hidden = true;
+      loadingMessage.hidden = true;
+      resetButtonState();
+      
+      setTimeout(() => {
+        if(outputData.className !== "success-alert" && outputData.className !== "error-alert") {
+          outputData.innerText = "担当先生を選択し、「QRコードを読み取る」ボタンを押してください";
+        }
+      }, 4000);
+    }
+
+    // ボタンのデザインとテキストを初期状態に戻す共通関数
+    function resetButtonState() {
+      const startBtn = document.getElementById("startBtn");
+      startBtn.innerText = "QRコードを読み取る";
+      startBtn.classList.remove("active-cancel");
+      startBtn.disabled = false;
+      isCameraRunning = false;
+    }
+  </script>
+</body>
+</html>
+
+        <!-- ▲▲▲ [アプリ 1] 表示エリア終了 ▲▲▲ -->
+
+
+        <!-- ▼▼▼ [アプリ 2] 表示エリア ▼▼▼ -->
+        <div id="panel-app2" class="tab-content hidden bg-white p-6 rounded-b-lg border border-slate-200 shadow-sm flex-1">
+
+            <!-- ▼▼▼ [アプリ2] コピペ位置 (ここから) ▼▼▼ -->
+            
+            <div class="p-8 text-center border-2 border-dashed border-slate-300 rounded-lg">
+                <p class="text-slate-500 font-medium">ここに【アプリ 2】のコード（HTML/CSS/JavaScript）を貼り付けてください。</p>
+            </div>
+
+            <!-- ▲▲▲ [アプリ2] コピペ位置 (ここまで) ▲▲▲ -->
+
+        </div>
+        <!-- ▲▲▲ [アプリ 2] 表示エリア終了 ▲▲▲ -->
+
+    </main>
+
+    <!-- =================================================== -->
+    <!-- 4. タブ切り替え用 最小限JavaScript -->
+    <!-- =================================================== -->
+    <script>
+        function switchTab(targetApp) {
+            const btnApp1 = document.getElementById('btn-app1');
+            const btnApp2 = document.getElementById('btn-app2');
+            const panelApp1 = document.getElementById('panel-app1');
+            const panelApp2 = document.getElementById('panel-app2');
+
+            if (targetApp === 'app1') {
+                // アプリ1を表示
+                panelApp1.classList.remove('hidden');
+                panelApp2.classList.add('hidden');
+
+                // ボタンのスタイル切り替え
+                btnApp1.className = "tab-btn flex-1 py-3 px-4 font-bold text-center text-indigo-600 border-b-2 border-indigo-600 bg-white transition-colors";
+                btnApp2.className = "tab-btn flex-1 py-3 px-4 font-bold text-center text-slate-500 hover:text-slate-700 bg-slate-50 transition-colors";
+            } else if (targetApp === 'app2') {
+                // アプリ2を表示
+                panelApp1.classList.add('hidden');
+                panelApp2.classList.remove('hidden');
+
+                // ボタンのスタイル切り替え
+                btnApp2.className = "tab-btn flex-1 py-3 px-4 font-bold text-center text-indigo-600 border-b-2 border-indigo-600 bg-white transition-colors";
+                btnApp1.className = "tab-btn flex-1 py-3 px-4 font-bold text-center text-slate-500 hover:text-slate-700 bg-slate-50 transition-colors";
+            }
+        }
+    </script>
+</body>
+</html>
