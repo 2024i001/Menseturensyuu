@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QRコード面接練習回数管理システム</title>
+  <title>【旧式】QRコード面接練習回数管理システム</title>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     /* 全体ベース */
@@ -192,7 +192,7 @@
 </head>
 <body>
 
-  <h2>面接練習記録用 QRスキャナー</h2>
+  <h2>【旧式】面接練習記録用 QRスキャナー</h2>
   
   <div class="main-container">
     
@@ -259,7 +259,7 @@
         .then(res => res.json())
         .then(data => {
           teacherSelect.innerHTML = '<option value="未選択">-- 先生を選択してください --</option>';
-          if (data.teachers && data.teachers.length > 0) {
+          if (data.teachers && data.teachers.length = 0) {
             data.teachers.forEach(teacher => {
               const opt = document.createElement("option");
               opt.value = teacher;
